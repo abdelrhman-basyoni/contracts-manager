@@ -16,6 +16,25 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
     },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: [
+              'dynamodb:DescribeTable',
+              'dynamodb:Query',
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+              'dynamodb:PutItem',
+              'dynamodb:UpdateItem',
+              'dynamodb:DeleteItem',
+            ],
+            Resource: 'arn:aws:dynamodb:us-west-2:*:table/Users',
+          },
+        ],
+      },
+    },
   },
   // import the function via paths
   functions: { login },
@@ -30,6 +49,41 @@ const serverlessConfiguration: AWS = {
       define: { 'require.resolve': undefined },
       platform: 'node',
       concurrency: 10,
+    },
+    dynamodb: {
+      start: {
+        port: 5000,
+        inMemory: true,
+        migrate: true,
+      },
+      stages: 'dev',
+    },
+  },
+  resources: {
+    Resources: {
+      UsersTable: {
+        Type: 'AWS::DynamoDB::Table',
+        Properties: {
+          TableName: 'UsersTable',
+          AttributeDefinitions: [
+            {
+              AttributeName: 'username',
+              AttributeType: 'S',
+            },
+          ],
+          KeySchema: [
+            {
+              AttributeName: 'username',
+              KeyType: 'HASH',
+            },
+          ],
+
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 1,
+            WriteCapacityUnits: 1,
+          },
+        },
+      },
     },
   },
 };
