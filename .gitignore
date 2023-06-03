@@ -10,3 +10,7 @@ jspm_packages
 
 # dynamodb
 .dynamodb
+
+
+#coverage
+.coverage
