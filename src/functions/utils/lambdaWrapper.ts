@@ -3,8 +3,13 @@ import { TokenPayload } from '../../core/domain/services/Token';
 import { NotFoundError, PermissionError, ValidationError } from '../../core/domain/utils/Errors';
 import { JsonWebTokenService } from '../../core/implementation/services/Token';
 
-type Handler<Req, Res> = (req: Req) => Promise<Res>;
-type HandlerWithToken<Req, Res> = (req: Req, token: TokenPayload) => Promise<Res>;
+type QueryParams = Record<string, string>;
+type Handler<Req, Res> = (req: Req, params: QueryParams) => Promise<Res>;
+type HandlerWithToken<Req, Res> = (
+  req: Req,
+  params: Record<string, string | number>,
+  token: TokenPayload,
+) => Promise<Res>;
 type AuthChecker = (token: string | null) => Promise<TokenPayload>;
 
 /** lambdaPublic
@@ -42,6 +47,7 @@ function wrapper<Req, Res>(
        * validate and authenticate the token if authChecker is available
        * catch the error parse it and return the proper status code
        */
+      const params = getQueryParamsFromEvent(event);
       const data = getRequestDataFromEvent(event);
       const token = await extractToken(event);
       let handlerResponse;
@@ -50,11 +56,12 @@ function wrapper<Req, Res>(
         const tokenPayload = await authChecker(token);
         handlerResponse = await callHandlerWithPayload(
           data,
+          params,
           tokenPayload,
           handler as HandlerWithToken<Req, Res>,
         );
       } else {
-        handlerResponse = await callHandler(data, handler as Handler<Req, Res>);
+        handlerResponse = await callHandler(data, params, handler as Handler<Req, Res>);
       }
 
       result = { success: true, ...handlerResponse };
@@ -82,8 +89,8 @@ function wrapper<Req, Res>(
  * @param handler the function code
  * @returns that handler response
  */
-async function callHandler<Req, Res>(data: Req, handler: Handler<Req, Res>) {
-  return (await handler(data)) || {};
+async function callHandler<Req, Res>(data: Req, params: QueryParams, handler: Handler<Req, Res>) {
+  return (await handler(data, params)) || {};
 }
 
 /**
@@ -95,10 +102,11 @@ async function callHandler<Req, Res>(data: Req, handler: Handler<Req, Res>) {
  */
 async function callHandlerWithPayload<Req, Res>(
   data: Req,
+  params: QueryParams,
   payload: TokenPayload,
   handler: HandlerWithToken<Req, Res>,
 ) {
-  return (await handler(data, payload)) || {};
+  return (await handler(data, params, payload)) || {};
 }
 
 async function userAuth(token: string | null): Promise<TokenPayload> {
@@ -118,6 +126,9 @@ function getRequestDataFromEvent(event: APIGatewayProxyEventV2) {
   if (event.body !== undefined) return JSON.parse(event.body as string);
 
   return {};
+}
+function getQueryParamsFromEvent(event: APIGatewayProxyEventV2) {
+  return event.queryStringParameters ? event.queryStringParameters : {};
 }
 
 async function extractToken(event: APIGatewayProxyEventV2): Promise<string | null> {
