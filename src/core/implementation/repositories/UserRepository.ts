@@ -1,11 +1,15 @@
 import { User } from 'src/core/domain/entities/User';
 import { UserRepository } from 'src/core/domain/repositories/UserRepository';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { dynamoClient } from 'src/core/implementation/repositories/dynamoDbClient';
 
 export class DynamoUserRepository extends UserRepository {
   private usersTableName = 'UsersTable';
-  constructor(readonly dynamoClient: DynamoDBClient) {
+  readonly dynamoClient: DynamoDBClient;
+
+  constructor() {
     super();
+    this.dynamoClient = dynamoClient();
   }
 
   async findOneByUsername(username: string): Promise<User | null> {

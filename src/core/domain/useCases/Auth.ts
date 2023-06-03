@@ -14,13 +14,17 @@ export class AuthUseCase {
     const candidateUser = await this.userRepo.findOneByUsername(username);
 
     if (!candidateUser) throw new PermissionError('Invalid login credentials');
+    const correctPassword = await this.passwordService.comparePassword(
+      password,
+      String(candidateUser.password),
+    );
 
-    if (!this.passwordService.comparePassword(password, String(candidateUser.password))) {
+    if (!correctPassword) {
       throw new PermissionError('Invalid login credentials');
     }
 
     const accessToken = this.tokenService.createAccessToken({
-      id: candidateUser.id,
+      username: candidateUser.username,
     });
 
     return { accessToken };
