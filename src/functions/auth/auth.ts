@@ -21,3 +21,12 @@ export const login = lambdaPublic<ILogin, ILoginRes>(async (req) => {
 
   return await useCase.login(req.username, req.password);
 });
+
+export const register = lambdaPublic<ILogin, void>(async (req) => {
+  const userRepo = new DynamoUserRepository();
+  const tokenService = new JsonWebTokenService();
+  const passwordService = new BcryptPasswordService();
+  const useCase = new AuthUseCase(userRepo, tokenService, passwordService);
+
+  return await useCase.register(req.username, req.password);
+});
