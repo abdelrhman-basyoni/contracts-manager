@@ -1,5 +1,10 @@
 import type { AWS } from '@serverless/typescript';
 import { login, register } from '@functions/auth/functionsDefinitions';
+import {
+  getContract,
+  getContractsIDs,
+  createContract,
+} from '@functions/contracts/functionsDefinitions';
 import * as dotenv from 'dotenv';
 dotenv.config({});
 
@@ -40,7 +45,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { login, register },
+  functions: { login, register, getContract, getContractsIDs, createContract },
   package: { individually: true },
   custom: {
     esbuild: {
@@ -108,6 +113,29 @@ const serverlessConfiguration: AWS = {
               },
             },
           ],
+        },
+      },
+      ContractsTable: {
+        Type: 'AWS::DynamoDB::Table',
+        Properties: {
+          TableName: 'ContractsTable',
+          AttributeDefinitions: [
+            {
+              AttributeName: 'contractID',
+              AttributeType: 'S',
+            },
+          ],
+          KeySchema: [
+            {
+              AttributeName: 'contractID',
+              KeyType: 'HASH',
+            },
+          ],
+
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 1,
+            WriteCapacityUnits: 1,
+          },
         },
       },
     },
