@@ -1,5 +1,7 @@
 import type { AWS } from '@serverless/typescript';
-import login from '@functions/login';
+import { login, register } from '@functions/auth/functionsDefinitions';
+import * as dotenv from 'dotenv';
+dotenv.config({});
 
 const serverlessConfiguration: AWS = {
   service: 'contracts-manager',
@@ -15,6 +17,7 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
+      ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
     },
     iam: {
       role: {
@@ -37,7 +40,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { login },
+  functions: { login, register },
   package: { individually: true },
   custom: {
     esbuild: {
@@ -53,8 +56,9 @@ const serverlessConfiguration: AWS = {
     dynamodb: {
       start: {
         port: 5000,
-        inMemory: true,
+        inMemory: false,
         migrate: true,
+        dbPath: './.dynamodb',
       },
       stages: 'dev',
     },
