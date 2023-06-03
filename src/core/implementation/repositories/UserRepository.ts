@@ -1,6 +1,6 @@
 import { User } from 'src/core/domain/entities/User';
 import { UserRepository } from 'src/core/domain/repositories/UserRepository';
-import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { dynamoClient } from 'src/core/implementation/repositories/dynamoDbClient';
 
 export class DynamoUserRepository extends UserRepository {
@@ -28,5 +28,16 @@ export class DynamoUserRepository extends UserRepository {
     const user = new User(result.Item.username.S, result.Item.password.S);
 
     return user;
+  }
+
+  async registerUser(username: string, hashedPassword: string) {
+    const cmd = new PutItemCommand({
+      TableName: this.usersTableName,
+      Item: {
+        username: { S: username },
+        password: { S: hashedPassword },
+      },
+    });
+    await this.dynamoClient.send(cmd);
   }
 }
