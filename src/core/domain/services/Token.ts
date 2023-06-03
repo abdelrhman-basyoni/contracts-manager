@@ -1,5 +1,5 @@
 export interface TokenPayload {
-  username: string;
+  id: string;
 }
 
 export abstract class TokenService {

@@ -11,8 +11,8 @@ export class AuthUseCase {
   ) {}
 
   async login(username: string, password: string) {
-    const candidateUser = await this.userRepo.findOneByUsername(username);
-
+    const candidateUser = await this.userRepo.findOneByUsernameWithPassword(username);
+    console.log({ candidateUser });
     if (!candidateUser) throw new PermissionError('Invalid login credentials');
 
     const correctPassword = await this.passwordService.comparePassword(
@@ -25,7 +25,7 @@ export class AuthUseCase {
     }
 
     const accessToken = this.tokenService.createAccessToken({
-      username: candidateUser.username,
+      id: candidateUser.username,
     });
 
     return { accessToken };

@@ -22,8 +22,8 @@ describe('login useCase', () => {
     const username = 'username';
     const password = 'password';
     const hashedPassword = await passwordService.hashPassword(password);
-    const user = new User(username, hashedPassword);
-    when(userRepo.findOneByUsername(username)).thenResolve(user);
+    const user = new User('userId', username, hashedPassword);
+    when(userRepo.findOneByUsernameWithPassword(username)).thenResolve(user);
 
     expect(useCase.login(username, password)).resolves.toHaveProperty('accessToken');
   });
@@ -32,16 +32,16 @@ describe('login useCase', () => {
     const username = 'username';
     const password = 'password';
     const hashedPassword = await passwordService.hashPassword(password);
-    const user = new User(username, hashedPassword);
+    const user = new User('userId', username, hashedPassword);
 
-    when(userRepo.findOneByUsername(username)).thenResolve(user);
+    when(userRepo.findOneByUsernameWithPassword(username)).thenResolve(user);
     expect(useCase.login(username, 'wrong password')).rejects.toThrow();
   });
 
   it('should throw error invalid login  when given a wrong username', async () => {
     const username = 'username';
     const password = 'password';
-    when(userRepo.findOneByUsername(username)).thenResolve(null);
+    when(userRepo.findOneByUsernameWithPassword(username)).thenResolve(null);
 
     expect(useCase.login(username, password)).rejects.toThrow();
   });
@@ -71,7 +71,7 @@ describe('register useCase', () => {
   it('should throw an error when trying to register an existing user', async () => {
     const username = 'existingUser';
     const password = 'newPassword';
-    const existingUser = new User(username, 'hashedPassword');
+    const existingUser = new User('userId', username);
     when(userRepo.findOneByUsername(username)).thenResolve(existingUser);
 
     await expect(useCase.register(username, password)).rejects.toThrow();

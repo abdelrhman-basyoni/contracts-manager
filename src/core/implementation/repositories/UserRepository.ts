@@ -1,7 +1,8 @@
 import { User } from 'src/core/domain/entities/User';
 import { UserRepository } from 'src/core/domain/repositories/UserRepository';
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { dynamoClient } from 'src/core/implementation/repositories/dynamoDbClient';
+import { uuidGenerator } from 'src/core/domain/utils/uuid';
 
 export class DynamoUserRepository extends UserRepository {
   private usersTableName = 'UsersTable';
@@ -12,28 +13,53 @@ export class DynamoUserRepository extends UserRepository {
     this.dynamoClient = dynamoClient();
   }
 
-  async findOneByUsername(username: string): Promise<User | null> {
-    const cmd = new GetItemCommand({
+  private async _findOneByUsername(username: string) {
+    const cmd = new QueryCommand({
       TableName: this.usersTableName,
-      Key: {
-        username: { S: username },
+      IndexName: 'usernameIndex',
+      KeyConditionExpression: 'username = :username',
+      ExpressionAttributeValues: {
+        ':username': { S: username },
       },
+      Limit: 1,
     });
 
-    const result = await this.dynamoClient.send(cmd);
+    return await this.dynamoClient.send(cmd);
+  }
 
-    if (!result.Item) {
+  async findOneByUsername(username: string): Promise<User> {
+    const result = await this._findOneByUsername(username);
+
+    if (result.Items.length == 0) {
       return null;
     }
-    const user = new User(result.Item.username.S, result.Item.password.S);
+
+    const resultUser = result.Items[0];
+    const user = new User(resultUser.id.S, resultUser.username.S);
+
+    return user;
+  }
+
+  async findOneByUsernameWithPassword(username: string): Promise<User | null> {
+    const result = await this._findOneByUsername(username);
+
+    if (result.Items.length == 0) {
+      return null;
+    }
+
+    const resultUser = result.Items[0];
+    const user = new User(resultUser.id.S, resultUser.username.S, resultUser.password.S);
 
     return user;
   }
 
   async registerUser(username: string, hashedPassword: string) {
+    const userId = uuidGenerator();
+
     const cmd = new PutItemCommand({
       TableName: this.usersTableName,
       Item: {
+        id: { S: userId },
         username: { S: username },
         password: { S: hashedPassword },
       },

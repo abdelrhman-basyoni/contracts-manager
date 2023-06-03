@@ -71,13 +71,17 @@ const serverlessConfiguration: AWS = {
           TableName: 'UsersTable',
           AttributeDefinitions: [
             {
+              AttributeName: 'id',
+              AttributeType: 'S',
+            },
+            {
               AttributeName: 'username',
               AttributeType: 'S',
             },
           ],
           KeySchema: [
             {
-              AttributeName: 'username',
+              AttributeName: 'id',
               KeyType: 'HASH',
             },
           ],
@@ -86,6 +90,24 @@ const serverlessConfiguration: AWS = {
             ReadCapacityUnits: 1,
             WriteCapacityUnits: 1,
           },
+          GlobalSecondaryIndexes: [
+            {
+              IndexName: 'usernameIndex', // Name of the global secondary index
+              KeySchema: [
+                {
+                  AttributeName: 'username',
+                  KeyType: 'HASH',
+                },
+              ],
+              Projection: {
+                ProjectionType: 'ALL', // Adjust projection type as needed
+              },
+              ProvisionedThroughput: {
+                ReadCapacityUnits: 1,
+                WriteCapacityUnits: 1,
+              },
+            },
+          ],
         },
       },
     },
