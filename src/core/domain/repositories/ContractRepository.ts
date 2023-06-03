@@ -1,6 +1,6 @@
 import { Contract } from '../entities/Contract';
 
-interface IContractsIDs {
+export interface IContractsIDs {
   contractID: string;
 }
 

@@ -6,11 +6,11 @@ import { uuidGenerator } from 'src/core/domain/utils/uuid';
 
 export class DynamoUserRepository extends UserRepository {
   private usersTableName = 'UsersTable';
-  readonly dynamoClient: DynamoDBClient;
+  readonly dynamodbClient: DynamoDBClient;
 
   constructor() {
     super();
-    this.dynamoClient = dynamoClient();
+    this.dynamodbClient = dynamoClient();
   }
 
   private async _findOneByUsername(username: string) {
@@ -24,7 +24,7 @@ export class DynamoUserRepository extends UserRepository {
       Limit: 1,
     });
 
-    return await this.dynamoClient.send(cmd);
+    return await this.dynamodbClient.send(cmd);
   }
 
   async findOneByUsername(username: string): Promise<User> {
@@ -64,6 +64,6 @@ export class DynamoUserRepository extends UserRepository {
         password: { S: hashedPassword },
       },
     });
-    await this.dynamoClient.send(cmd);
+    await this.dynamodbClient.send(cmd);
   }
 }
