@@ -2,7 +2,24 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { TokenPayload } from '../../core/domain/services/Token';
 import { NotFoundError, PermissionError, ValidationError } from '../../core/domain/utils/Errors';
 import { JsonWebTokenService } from '../../core/implementation/services/Token';
+import { validateSync } from 'class-validator';
 
+function validateClass(classType: any, data: any) {
+  const instance = Object.assign(new classType(), data);
+
+  return validateSync(instance);
+}
+function validateRequest(requestDto: any, reqBody: any) {
+  const validationErrors = validateClass(requestDto, reqBody);
+  if (validationErrors.length > 0) {
+    const constraints = Object.values(validationErrors[0].constraints);
+    const formattedError = `${validationErrors[0].property} : ${constraints.join(', ')}`;
+
+    throw new ValidationError(formattedError);
+  }
+}
+
+type RequestDTO<Req> = new () => Req | void;
 type QueryParams = Record<string, string>;
 type Handler<Req, Res> = (req: Req, params: QueryParams) => Promise<Res>;
 type HandlerWithToken<Req, Res> = (
@@ -15,15 +32,18 @@ type AuthChecker = (token: string | null) => Promise<TokenPayload>;
 /** lambdaPublic
  *  will handle any requests from public not token authentication
  */
-export function lambdaPublic<Req, Res>(handler: Handler<Req, Res>) {
-  return wrapper(handler);
+export function lambdaPublic<Req, Res>(requestDto: RequestDTO<Req>, handler: Handler<Req, Res>) {
+  return wrapper(handler, requestDto);
 }
 
 /** lambdaUser
  *  will handle any request that requires token authentication
  */
-export function lambdaUser<Req, Res>(handler: HandlerWithToken<Req, Res>) {
-  return wrapper(handler, userAuth);
+export function lambdaUser<Req, Res>(
+  requestDto: RequestDTO<Req>,
+  handler: HandlerWithToken<Req, Res>,
+) {
+  return wrapper(handler, requestDto, userAuth);
 }
 
 /**
@@ -34,6 +54,7 @@ export function lambdaUser<Req, Res>(handler: HandlerWithToken<Req, Res>) {
  */
 function wrapper<Req, Res>(
   handler: Handler<Req, Res> | HandlerWithToken<Req, Res>,
+  requestDto: RequestDTO<Req>,
   authChecker?: AuthChecker,
 ) {
   return async (event) => {
@@ -51,6 +72,10 @@ function wrapper<Req, Res>(
       const data = getRequestDataFromEvent(event);
       const token = extractToken(event);
       let handlerResponse;
+
+      if (requestDto !== null) {
+        validateRequest(requestDto, data);
+      }
 
       if (authChecker) {
         const tokenPayload = await authChecker(token);
