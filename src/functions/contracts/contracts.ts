@@ -12,6 +12,10 @@ interface IContractsID {
   contractID: string;
 }
 
+interface IContractsIDsRes {
+  contractsIDs: IContractsID[];
+}
+
 export const createContract = lambdaUser<ICreateContractReq, IContractsID>(async (req) => {
   const contractRepo = new DynamoContractRepository();
   const useCase = new ContractUseCase(contractRepo);
@@ -20,11 +24,13 @@ export const createContract = lambdaUser<ICreateContractReq, IContractsID>(async
   return { contractID };
 });
 
-export const getContracts = lambdaUser<void, IContractsID[]>(async () => {
+export const getContracts = lambdaUser<void, IContractsIDsRes>(async () => {
   const contractRepo = new DynamoContractRepository();
   const useCase = new ContractUseCase(contractRepo);
+  const ids = await useCase.getContracts();
+  const res = { contractsIDs: ids };
 
-  return useCase.getContracts();
+  return res;
 });
 
 export const getContract = lambdaUser<{ id: string }, Contract>(async (req, params) => {
