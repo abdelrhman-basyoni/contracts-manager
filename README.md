@@ -155,3 +155,12 @@ Authorization: Bearer <access_token>
 ```
 
 **Note**: Replace `<access_token>` in the request headers with the actual access token obtained from the login response.
+
+
+## Future Features
+
+The following features will be added to enhance the functionality of Contracts Manager:
+
+1. Logging: Implement a logging system to track and record important events and actions within the application. This will provide valuable insights for troubleshooting and monitoring the system.
+
+2. Integration Test Script: Develop an integration test script that will automate the testing process for the Contracts Manager application. This script will ensure the smooth integration of various components and functionalities, helping to identify and resolve any issues before deployment.
