@@ -65,7 +65,7 @@ export class DynamoContractRepository extends ContractRepository {
     }
 
     const contract = new Contract(
-      result.Item.cotractID.S,
+      result.Item.contractID.S,
       result.Item.userID.S,
       result.Item.contractName.S,
       result.Item.templateID.S,
