@@ -92,8 +92,8 @@ const serverlessConfiguration: AWS = {
           ],
 
           ProvisionedThroughput: {
-            ReadCapacityUnits: 1,
-            WriteCapacityUnits: 1,
+            ReadCapacityUnits: 1000,
+            WriteCapacityUnits: 1000,
           },
           GlobalSecondaryIndexes: [
             {
@@ -133,8 +133,8 @@ const serverlessConfiguration: AWS = {
           ],
 
           ProvisionedThroughput: {
-            ReadCapacityUnits: 1,
-            WriteCapacityUnits: 1,
+            ReadCapacityUnits: 1000,
+            WriteCapacityUnits: 1000,
           },
         },
       },
