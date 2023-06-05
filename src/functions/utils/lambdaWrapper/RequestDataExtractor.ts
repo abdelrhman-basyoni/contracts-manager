@@ -27,7 +27,8 @@ export class RequestDataParser {
   parseTokenPayload() {
     const token = this.extractToken();
     const tokenService = new JsonWebTokenService();
-    if (this.event.tokenPayload) {
+
+    if (token) {
       const payload = tokenService.jwtVerifyAccessToken(token) as TokenPayload;
       this.event.tokenPayload = payload;
     }
