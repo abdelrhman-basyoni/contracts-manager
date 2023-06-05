@@ -5,11 +5,7 @@ import { DynamoUserRepository } from 'src/core/implementation/repositories/UserR
 import { BcryptPasswordService } from 'src/core/implementation/services/PasswordService';
 import { JsonWebTokenService } from 'src/core/implementation/services/Token';
 
-interface ILogin {
-  username: string;
-  password: string;
-}
-class LoginReqDTO implements ILogin {
+class LoginReqDTO {
   @IsString()
   @IsNotEmpty()
   username: string;
@@ -20,6 +16,7 @@ class LoginReqDTO implements ILogin {
 }
 interface ILoginRes {
   accessToken: string;
+  userID: string;
 }
 
 export const login = lambdaPublic<LoginReqDTO, ILoginRes>(LoginReqDTO, async (req) => {
@@ -31,7 +28,7 @@ export const login = lambdaPublic<LoginReqDTO, ILoginRes>(LoginReqDTO, async (re
   return await useCase.login(req.username, req.password);
 });
 
-export const register = lambdaPublic<ILogin, void>(LoginReqDTO, async (req) => {
+export const register = lambdaPublic<LoginReqDTO, void>(LoginReqDTO, async (req) => {
   const userRepo = new DynamoUserRepository();
   const tokenService = new JsonWebTokenService();
   const passwordService = new BcryptPasswordService();

@@ -13,11 +13,6 @@ export class UserValidationStrategy extends ValidationStrategy {
   }
 }
 
-interface IReqBodyValidation {
-  requestDto: any;
-  reqBody: any;
-}
-
 export class RequestBodyValidationStrategy extends ValidationStrategy {
   constructor(readonly requestDto: any, readonly reqBody: any) {
     super();

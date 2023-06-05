@@ -28,7 +28,7 @@ export class AuthUseCase {
       id: candidateUser.username,
     });
 
-    return { accessToken };
+    return { accessToken, userID: candidateUser.id };
   }
 
   async register(username: string, password) {
