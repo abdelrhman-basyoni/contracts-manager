@@ -7,7 +7,7 @@ type QueryParams = Record<string, string>;
 type Handler<Req, Res> = (req: Req, params: QueryParams) => Promise<Res>;
 type HandlerWithToken<Req, Res> = (
   req: Req,
-  params: Record<string, string | number>,
+  params: QueryParams,
   token: TokenPayload,
 ) => Promise<Res>;
 type AuthChecker = (token: string | null) => Promise<TokenPayload>;
@@ -49,7 +49,7 @@ function wrapper<Req, Res>(
        */
       const params = getQueryParamsFromEvent(event);
       const data = getRequestDataFromEvent(event);
-      const token = await extractToken(event);
+      const token = extractToken(event);
       let handlerResponse;
 
       if (authChecker) {
@@ -64,7 +64,7 @@ function wrapper<Req, Res>(
         handlerResponse = await callHandler(data, params, handler as Handler<Req, Res>);
       }
 
-      result = { success: true, ...handlerResponse };
+      result = { success: true, data: { ...handlerResponse } };
     } catch (error) {
       console.error({ error });
       statusCode = getStatusCodeForError(error as Error);
@@ -131,9 +131,16 @@ function getQueryParamsFromEvent(event: APIGatewayProxyEventV2) {
   return event.queryStringParameters ? event.queryStringParameters : {};
 }
 
-async function extractToken(event: APIGatewayProxyEventV2): Promise<string | null> {
-  if (!event.headers['authorization']) return null;
-  const token = event.headers['authorization'].split(' ')[1];
+function extractToken(event: APIGatewayProxyEventV2): string | null {
+  /** http headers should be loser case because its case insensitive */
+
+  const headers = {};
+  for (const key in event.headers) {
+    headers[key.toLowerCase()] = event.headers[key];
+  }
+
+  if (!headers['authorization']) return null;
+  const token = headers['authorization'].split(' ')[1];
 
   if (token) {
     return token;
