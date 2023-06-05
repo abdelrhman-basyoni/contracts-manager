@@ -45,6 +45,28 @@ serverless offline start
 ```
 
 This command will start the local server and allow you to test and debug your serverless application on your PC.
+## Testing
+  In order to test the project you can run 
+```
+npm run test
+```
+for test coverage you can run 
+```
+npm run test:cov
+```
+## Code formating and linting
+For lint  check yuo can run 
+```
+npm run lint
+```
+and for auto-fix ( Still cant fix all isssues )
+```
+npm run lint:fix
+```
+And for formating according to the .prettierrc
+```
+npm run format
+```
 
 ## API Documentation
 
