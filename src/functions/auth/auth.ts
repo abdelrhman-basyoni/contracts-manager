@@ -1,4 +1,5 @@
 import { lambdaPublic } from '@functions/utils/lambdaWrapper';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { AuthUseCase } from 'src/core/domain/useCases/Auth';
 import { DynamoUserRepository } from 'src/core/implementation/repositories/UserRepository';
 import { BcryptPasswordService } from 'src/core/implementation/services/PasswordService';
@@ -8,12 +9,20 @@ interface ILogin {
   username: string;
   password: string;
 }
+class LoginReqDTO implements ILogin {
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}
 interface ILoginRes {
   accessToken: string;
 }
 
-export const login = lambdaPublic<ILogin, ILoginRes>(async (req) => {
+export const login = lambdaPublic<LoginReqDTO, ILoginRes>(LoginReqDTO, async (req) => {
   const userRepo = new DynamoUserRepository();
   const tokenService = new JsonWebTokenService();
   const passwordService = new BcryptPasswordService();
@@ -22,7 +31,7 @@ export const login = lambdaPublic<ILogin, ILoginRes>(async (req) => {
   return await useCase.login(req.username, req.password);
 });
 
-export const register = lambdaPublic<ILogin, void>(async (req) => {
+export const register = lambdaPublic<ILogin, void>(LoginReqDTO, async (req) => {
   const userRepo = new DynamoUserRepository();
   const tokenService = new JsonWebTokenService();
   const passwordService = new BcryptPasswordService();
